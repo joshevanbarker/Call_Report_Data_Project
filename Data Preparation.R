@@ -1,3 +1,5 @@
+#Call Report Data Project Data Preparation
+
 #Download "Call Reports -- Balance Sheet, Income Statement, Past Due -- Four Periods" from CDR 2019 - 2023
 #Link: https://cdr.ffiec.gov/public/PWS/DownloadBulkData.aspx
 #Save to the directory, then use this to convert to CSVs that can be easily uploaded into a SQL database
@@ -5,15 +7,17 @@
 library(tidyverse) 
 
 getwd()
-setwd("/Users/joshbarker/Documents/GitHub/FinStat/Call Report Project/FFIEC CDR Call Data/Raw")
+setwd("/FFIEC CDR Call Data")
 
 data_1 <- read.delim("FFIEC CDR Call Subset of Schedules 2019(1 of 2).txt", header = TRUE, sep = "\t")
-cdr_file_1_def <- head(data_1, 2)
+cdr_file_1_def <- head(data_1, 1)
 write.csv(cdr_file_1_def, "cdr_file_1_def.csv")
 
 data_2 <- read.delim("FFIEC CDR Call Subset of Schedules 2019(2 of 2).txt", header = TRUE, sep = "\t")
-cdr_file_2_def <- head(data_2, 2)
+cdr_file_2_def <- head(data_2, 1)
 write.csv(cdr_file_2_def, "cdr_file_2_def.csv")
+
+remove(data_1, data_2)
 
 cdr_files <- list.files(path = path, pattern = "FFIEC CDR Call Subset of Schedules*", full.names = TRUE)
 
@@ -30,3 +34,5 @@ for (file in cdr_files) {
   write.csv(data, paste0(file_name, ".csv"), row.names = FALSE)
   
 }
+
+#Now, go to PostgreSQL to create the database and input these CSVs into two staging tables
