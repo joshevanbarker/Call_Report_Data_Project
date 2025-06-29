@@ -9,6 +9,6 @@ In this project, I create an R Shiny application to visualize and analyze Call R
 ### Call Report Data (2019-2023)
 * Five years of key Call Report variables in tab-delimited txt files, as downloaded directly from the FFIEC's Central Data Repository are available in the `FFIEC CDR Call Data` folder.
 ### SQL Database
-* `Data Preparation.R` prepares the raw txt files to be sent into a SQL server and creates 12 CSV files: 10 of the Call Report data and 2 that contain only the raw column names and descriptions.
+* `Data Preparation.R` prepares the raw txt files to be sent into a SQL server and creates 11 CSV files: 10 of the Call Report data and 1 that contains only the raw column names and descriptions.
 * `Create SQL Database.sql` creates a database called `FFIEC_CDR_CALL_PUBLIC`.
-* `Create Staging Table.sql` pulls in the 10 CSV files created in the Data Preparation file.
+* `Create Staging Tables.sql` pulls the 11 CSV files created in the Data Preparation file into the SQL Database.
