@@ -12,14 +12,22 @@ DROP TABLE IF EXISTS schedule_rcn_041_51;
 
 
 --First, we'll separate out the institutions' information from the main data
+--Since some institutions have changed names and addresses, but this doesn't concern our analysis much, we'll keep the RSSD (which remains constant) and ignore the past names and addresses and keep attached to the RSSD the most recent filing type.
 CREATE TABLE institutions AS
 SELECT DISTINCT a.ID_RSSD, a.INST_NAME, a.INST_ADDRESS, a.INST_CITY, a.INST_STATE, a.INST_ZIP, 
-b.first_dt, b.last_dt, a.FDIC_CERTIFICATE, a.OCC_CHARTER, a.OTS_DOCKET, a.ROUTING_NUMBER
-FROM raw_call_data_part_1 a
+b.first_dt, b.last_dt, a.FDIC_CERTIFICATE, a.OCC_CHARTER, a.OTS_DOCKET, a.ROUTING_NUMBER, c.filing_type
+FROM (SELECT ID_RSSD, INST_NAME, INST_ADDRESS, INST_CITY, INST_STATE, INST_ZIP, FDIC_CERTIFICATE,
+		OCC_CHARTER, OTS_DOCKET, ROUTING_NUMBER FROM (SELECT ID_RSSD, INST_NAME, INST_ADDRESS, INST_CITY, INST_STATE, INST_ZIP, FDIC_CERTIFICATE,
+		OCC_CHARTER, OTS_DOCKET, ROUTING_NUMBER, 
+		ROW_NUMBER() OVER (PARTITION BY ID_RSSD ORDER BY as_of_dt DESC) AS row_number FROM raw_call_data_part_1
+		) WHERE row_number = 1) AS a
 LEFT JOIN (
 	SELECT ID_RSSD, min(as_of_dt) AS first_dt, max(as_of_dt) as last_dt FROM raw_call_data_part_1 
 	GROUP BY ID_RSSD
-) AS b USING (ID_RSSD);
+) AS b USING (ID_RSSD)
+LEFT JOIN (
+	SELECT ID_RSSD, filing_type, as_of_dt FROM raw_call_data_part_1
+) AS c ON a.ID_RSSD = c.ID_RSSD AND b.last_dt = c.as_of_dt;
 
 --Next we'll create a table with long data for easier analysis
 --PostgreSQL does not have the UNPIVOT function, so we will use CROSS JOIN LATERAL that will make JSON of each MDRM and its value for each institution and as-of date, maintaining the filing status with each row for ease of analysis.
@@ -34,8 +42,6 @@ SELECT c.as_of_dt, c.id_rssd, c.filing_type, d.mdrm, d.amount
 FROM raw_call_data_part_2 c
 	CROSS JOIN LATERAL jsonb_each_text(to_jsonb(c) - 'as_of_dt' - 'id_rssd' - 'fdic_certificate' - 'occ_charter' - 'ots_docket'
 	- 'routing_number' - 'inst_name' - 'inst_address' - 'inst_city' - 'inst_state' - 'inst_zip' - 'filing_type' - 'submission_d_dt') as d(mdrm, amount);
-
-
 
 -- To ensure that we didn't miss any duplicates, let's check. Our goal is no results here. 
 SELECT id_rssd, as_of_dt, mdrm, COUNT(*) AS duplicate_count
@@ -97,7 +103,7 @@ RCFD6558, RCFD6559, RCFD6560, RCFD1248, RCFD1249, RCFD1250, RCFDC240, RCFDC241, 
 RCFDC410, RCFDC411, RCFDL183, RCFDL184, RCFDL185, RCFDL186, RCFDL187, RCFDL188 
 FROM raw_call_data_part_1 a
 INNER JOIN raw_call_data_part_2 b USING (id_rssd, as_of_dt)
-WHERE a.filing_type = '031';
+WHERE a.filing_type = '31';
 
 CREATE TABLE schedule_rcn_041_51 AS
 SELECT a.id_rssd, a.as_of_dt, a.filing_type, RCONF172, RCONF174, RCONF176, RCONF173, RCONF175, RCONF177,
