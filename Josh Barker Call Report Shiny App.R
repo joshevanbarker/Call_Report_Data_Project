@@ -592,11 +592,7 @@ server <- function(input, output, session) {
                  } 
                })
   
-  
-  observeEvent(input$ksubmit,
-               {
-                 
-               })
+
 }
 
 ## Application Running ====
