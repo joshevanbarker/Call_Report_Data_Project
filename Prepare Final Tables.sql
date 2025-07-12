@@ -50,6 +50,7 @@ GROUP BY id_rssd, as_of_dt, mdrm
 HAVING COUNT(*) > 1;
 
 -- Now, we'll create a table for each of the three schedules represented in this dataset
+-- We'll have to hard-code which MDRMs belong to which schedule
 CREATE TABLE schedule_ri AS
 SELECT id_rssd, as_of_dt, filing_type, RIAD4435, RIAD4436, RIAD4024, RIAD4012,
 RIADB485, RIADB486, RIAD4056, RIADB487, RIAD4058, RIAD4059, RIAD4010, RIAD4065, 
